@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>스도쿠 게임</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 0 auto;
+    }
+
+    td {
+      border: 1px solid #000;
+      width: 40px;
+      height: 40px;
+      text-align: center;
+    }
+
+    input {
+      width: 38px;
+      height: 38px;
+      text-align: center;
+      font-size: 18px;
+      border: none;
+    }
+
+    input:focus {
+      outline: 2px solid #00f;
+    }
+
+    .bold-border {
+      border-width: 2px;
+    }
+
+    .check-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+
+    .message {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>스도쿠 게임</h1>
+  <table id="sudoku-grid"></table>
+  <button class="check-button" onclick="checkSudoku()">체크</button>
+  <div class="message" id="message"></div>
+
+  <script>
+    // 스도쿠 기본 보드 (0은 빈 칸)
+    const initialBoard = [
+      [5, 3, 0, 0, 7, 0, 0, 0, 0],
+      [6, 0, 0, 1, 9, 5, 0, 0, 0],
+      [0, 9, 8, 0, 0, 0, 0, 6, 0],
+      [8, 0, 0, 0, 6, 0, 0, 0, 3],
+      [4, 0, 0, 8, 0, 3, 0, 0, 1],
+      [7, 0, 0, 0, 2, 0, 0, 0, 6],
+      [0, 6, 0, 0, 0, 0, 2, 8, 0],
+      [0, 0, 0, 4, 1, 9, 0, 0, 5],
+      [0, 0, 0, 0, 8, 0, 0, 7, 9],
+    ];
+
+    function createSudokuGrid() {
+      const table = document.getElementById("sudoku-grid");
+
+      for (let i = 0; i < 9; i++) {
+        const row = document.createElement("tr");
+
+        for (let j = 0; j < 9; j++) {
+          const cell = document.createElement("td");
+
+          // 굵은 테두리 처리
+          if (j % 3 === 0) cell.style.borderLeftWidth = "2px";
+          if (i % 3 === 0) cell.style.borderTopWidth = "2px";
+          if (j === 8) cell.style.borderRightWidth = "2px";
+          if (i === 8) cell.style.borderBottomWidth = "2px";
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.maxLength = 1;
+          input.dataset.row = i;
+          input.dataset.col = j;
+
+          if (initialBoard[i][j] !== 0) {
+            input.value = initialBoard[i][j];
+            input.disabled = true;
+          }
+
+          input.oninput = function () {
+            this.value = this.value.replace(/[^1-9]/g, "");
+          };
+
+          cell.appendChild(input);
+          row.appendChild(cell);
+        }
+
+        table.appendChild(row);
+      }
+    }
+
+    function checkSudoku() {
+      const message = document.getElementById("message");
+      const grid = Array.from({ length: 9 }, () => Array(9).fill(0));
+      const inputs = document.querySelectorAll("input");
+
+      for (const input of inputs) {
+        const row = parseInt(input.dataset.row);
+        const col = parseInt(input.dataset.col);
+        const value = parseInt(input.value);
+        if (!isNaN(value)) grid[row][col] = value;
+      }
+
+      const isValid = validateSudoku(grid);
+
+      if (isValid) {
+        message.textContent = "정답입니다! 🎉";
+        message.style.color = "green";
+      } else {
+        message.textContent = "틀린 부분이 있어요. 다시 확인해보세요.";
+        message.style.color = "red";
+      }
+    }
+
+    function validateSudoku(board) {
+      for (let i = 0; i < 9; i++) {
+        const row = new Set();
+        const col = new Set();
+        const box = new Set();
+
+        for (let j = 0; j < 9; j++) {
+          const r = board[i][j];
+          const c = board[j][i];
+          const b = board[3 * Math.floor(i / 3) + Math.floor(j / 3)][
+            3 * (i % 3) + (j % 3)
+          ];
+
+          if (r) {
+            if (row.has(r)) return false;
+            row.add(r);
+          }
+          if (c) {
+            if (col.has(c)) return false;
+            col.add(c);
+          }
+          if (b) {
+            if (box.has(b)) return false;
+            box.add(b);
+          }
+        }
+      }
+      return true;
+    }
+
+    createSudokuGrid();
+  </script>
+</body>
+</html>
